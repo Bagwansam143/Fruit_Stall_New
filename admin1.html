@@ -88,39 +88,42 @@ function del(id) { db.ref('<!DOCTYPE html>
     </div>
 
     <script>
-        // PASTE THE SAME FIREBASE CONFIG HERE
-        const firebaseConfig = { 
-            apiKey: "AIzaSyAVGLFFYJCkfAi94Y4MuXXNlOqoK9FTbAg",
-  authDomain: "fruitstall-b7ec5.firebaseapp.com",
-  databaseURL: "https://fruitstall-b7ec5-default-rtdb.firebaseio.com",
-  projectId: "fruitstall-b7ec5",
-  storageBucket: "fruitstall-b7ec5.firebasestorage.app",
-  messagingSenderId: "327620665688",
-  appId: "1:327620665688:web:7f21a399b715c98746c52d",
-  measurementId: "G-0QM785X27Y"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+    const firebaseConfig = {
+        apiKey: "AIzaSyAVGLFFYJCkfAi94Y4MuXXNlOqoK9FTbAg",
+        authDomain: "fruitstall-b7ec5.firebaseapp.com",
+        databaseURL: "https://fruitstall-b7ec5-default-rtdb.firebaseio.com",
+        projectId: "fruitstall-b7ec5",
+        appId: "1:327620665688:web:7f21a399b715c98746c52d"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    
+    // Yahan check karne ke liye ki connection hua ya nahi
+    console.log("Database connected!"); 
 
-        function pushFruit() {
-            const name = document.getElementById('fName').value;
-            const price = document.getElementById('fPrice').value;
-            const unit = document.getElementById('fUnit').value;
-            const img = document.getElementById('fImg').value;
-            if(name && price) {
-                db.ref('stall/').push({ name, price, unit, img });
-                alert("Added!");
-            }
+    function saveFruit() {
+        const n = document.getElementById('name').value;
+        const p = document.getElementById('price').value;
+        const u = document.getElementById('unit').value;
+        const i = document.getElementById('img').value;
+
+        if(n && p) {
+            db.ref('fruits/').push({
+                name: n,
+                price: p,
+                unit: u,
+                img: i
+            }).then(() => {
+                alert("Fruit Added Successfully!");
+                location.reload(); // Page refresh karega taaki list dikhe
+            }).catch((error) => {
+                alert("Error: " + error.message);
+            });
+        } else {
+            alert("Please enter Name and Price!");
         }
-
-        db.ref('stall/').on('value', (snap) => {
-            const list = document.getElementById('itemList');
-            list.innerHTML = '<h4>Current Live Stock:</h4>';
-            snap.forEach((child) => {
-                const data = child.val();
-                list.innerHTML += `
-                    <div class="item-row">
-                        <span>${data.name} - ₹/'+id).remove(); }
+    }
 </script>
 </body>
+
 </html>
