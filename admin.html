@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stall Admin Panel</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        .admin-box { max-width: 500px; margin: 50px auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .item-list { margin-top: 30px; }
+        .item-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
+        .del-btn { color: red; cursor: pointer; border: none; background: none; font-weight: bold; }
+    </style>
+</head>
+<body style="background: #f0f2f5;">
+    <div class="admin-box">
+        <h2>⚙️ Inventory Manager</h2>
+        <input type="text" id="fName" placeholder="Fruit Name (e.g. Alphonso Mango)">
+        <input type="number" id="fPrice" placeholder="Price (e.g. 500)">
+        <input type="text" id="fUnit" placeholder="Unit (e.g. kg or dozen)">
+        <input type="text" id="fImg" placeholder="Image URL">
+        <button class="btn-add" onclick="pushFruit()">Update Live Shop</button>
+
+        <div class="item-list" id="itemList">
+            <h4>Current Live Stock:</h4>
+            </div>
+    </div>
+
+    <script>
+        // PASTE THE SAME FIREBASE CONFIG HERE
+        const firebaseConfig = { 
+            apiKey: "AIzaSyAVGLFFYJCkfAi94Y4MuXXNlOqoK9FTbAg",
+  authDomain: "fruitstall-b7ec5.firebaseapp.com",
+  databaseURL: "https://fruitstall-b7ec5-default-rtdb.firebaseio.com",
+  projectId: "fruitstall-b7ec5",
+  storageBucket: "fruitstall-b7ec5.firebasestorage.app",
+  messagingSenderId: "327620665688",
+  appId: "1:327620665688:web:7f21a399b715c98746c52d",
+  measurementId: "G-0QM785X27Y"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function pushFruit() {
+            const name = document.getElementById('fName').value;
+            const price = document.getElementById('fPrice').value;
+            const unit = document.getElementById('fUnit').value;
+            const img = document.getElementById('fImg').value;
+            if(name && price) {
+                db.ref('stall/').push({ name, price, unit, img });
+                alert("Added!");
+            }
+        }
+
+        db.ref('stall/').on('value', (snap) => {
+            const list = document.getElementById('itemList');
+            list.innerHTML = '<h4>Current Live Stock:</h4>';
+            snap.forEach((child) => {
+                const data = child.val();
+                list.innerHTML += `
+                    <div class="item-row">
+                        <span>${data.name} - ₹${data.price}</span>
+                        <button class="del-btn" onclick="deleteItem('${child.key}')">Remove</button>
+                    </div>`;
+            });
+        });
+
+        function deleteItem(id) {
+            if(confirm("Remove this fruit from shop?")) {
+                db.ref('fruits/' + id).remove();
+            }
+        }
+    </script>
+</body>
+</html>

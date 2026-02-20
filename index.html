@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Madina Fruits - Fresh Delivery</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap');
+
+        body {
+            margin: 0; font-family: 'Outfit', sans-serif;
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%; animation: gradientBG 15s ease infinite;
+            min-height: 100vh; color: white; text-align: center; padding-bottom: 120px;
+        }
+
+        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        nav {
+            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px);
+            padding: 15px; display: flex; justify-content: space-around;
+            position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        nav a { color: white; text-decoration: none; font-weight: 600; cursor: pointer; }
+
+        .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 20px; min-height: 200px; }
+
+        .fruit-card {
+            background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 25px;
+            padding: 20px; width: 260px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .fruit-card img { width: 100%; height: 180px; object-fit: cover; border-radius: 15px; background: rgba(255,255,255,0.1); }
+
+        .qty-box { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 15px; }
+        .qty-btn { background: white; color: #e73c7e; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; font-size: 20px; font-weight: bold; }
+
+        #order-bar {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 450px; background: #27ae60; color: white;
+            padding: 18px 25px; border-radius: 50px; display: none; justify-content: space-between;
+            align-items: center; cursor: pointer; box-shadow: 0 10px 40px rgba(0,0,0,0.4); z-index: 5000;
+        }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 9000; }
+        .modal-content { background: white; color: #333; padding: 30px; border-radius: 30px; width: 90%; max-width: 400px; margin: 80px auto; text-align: left; }
+        .modal-content input, .modal-content textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 12px; box-sizing: border-box; font-family: inherit; }
+
+        #about { padding: 60px 20px; background: rgba(0,0,0,0.2); margin-top: 50px; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a onclick="window.scrollTo(0,0)">Home</a>
+        <a onclick="document.getElementById('about').scrollIntoView()">About Us</a>
+        <a href="login.html">Admin</a>
+    </nav>
+
+    <header>
+        <h1>🍎 Madina Fruits</h1>
+        <p>Select fruits & we deliver fresh!</p>
+    </header>
+
+    <div class="container" id="fruit-list">
+        <h3 id="loading-msg">Connecting to Farm Database...</h3>
+    </div>
+
+    <div id="about">
+        <h2>About Madina Fruits</h2>
+        <p>Sourcing the finest organic fruits since 2010. Quality you can trust.</p>
+    </div>
+
+    <div id="order-bar" onclick="openForm()">
+        <div><span id="cart-count">0</span> Items | Total: ₹<span id="cart-total">0</span></div>
+        <strong>Checkout Order →</strong>
+    </div>
+
+    <div class="modal" id="formModal">
+        <div class="modal-content">
+            <h2 style="margin-top:0;">🚚 Delivery Details</h2>
+            <input type="text" id="cName" placeholder="Your Full Name">
+            <input type="tel" id="cMobile" placeholder="Mobile Number">
+            <textarea id="cAddress" placeholder="Full Delivery Address" rows="3"></textarea>
+            <button onclick="sendOrder()" style="width:100%; padding:15px; background:#27ae60; color:white; border:none; border-radius:15px; font-weight:bold; font-size:16px; cursor:pointer;">Confirm on WhatsApp</button>
+            <center><button onclick="closeForm()" style="background:none; border:none; color:red; margin-top:15px; cursor:pointer;">Go Back</button></center>
+        </div>
+    </div>
+
+    <script>
+        // Sahi configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAVGLFFYJCkfAi94Y4MuXXNlOqoK9FTbAg",
+            authDomain: "fruitstall-b7ec5.firebaseapp.com",
+            databaseURL: "https://fruitstall-b7ec5-default-rtdb.firebaseio.com",
+            projectId: "fruitstall-b7ec5",
+            storageBucket: "fruitstall-b7ec5.firebasestorage.app",
+            messagingSenderId: "327620665688",
+            appId: "1:327620665688:web:7f21a399b715c98746c52d"
+        };
+
+        // Initialize Firebase Compat
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let cart = {};
+
+        // Data Khichne ka function
+        db.ref('fruits/').on('value', (snap) => {
+            const container = document.getElementById('fruit-list');
+            container.innerHTML = ''; // Clear loader
+            
+            if(!snap.exists()) {
+                container.innerHTML = "<h3>Shop is currently empty. Please check back later!</h3>";
+                return;
+            }
+
+            snap.forEach((child) => {
+                const item = child.val();
+                const id = child.key;
+                container.innerHTML += `
+                    <div class="fruit-card">
+                        <img src="${item.img || 'https://via.placeholder.com/200'}" onerror="this.src='https://via.placeholder.com/200'">
+                        <h3>${item.name}</h3>
+                        <p>₹${item.price} / ${item.unit}</p>
+                        <div class="qty-box">
+                            <button class="qty-btn" onclick="updateQty('${id}', '${item.name}', ${item.price}, -1)">-</button>
+                            <span id="qty-${id}" style="font-size:20px; font-weight:bold;">0</span>
+                            <button class="qty-btn" onclick="updateQty('${id}', '${item.name}', ${item.price}, 1)">+</button>
+                        </div>
+                    </div>`;
+            });
+        }, (error) => {
+            document.getElementById('loading-msg').innerText = "Database Error: " + error.message;
+        });
+
+        function updateQty(id, name, price, change) {
+            if(!cart[id]) cart[id] = { name: name, price: price, qty: 0 };
+            cart[id].qty += change;
+            if(cart[id].qty < 0) cart[id].qty = 0;
+            
+            document.getElementById('qty-' + id).innerText = cart[id].qty;
+            calculateTotal();
+        }
+
+        function calculateTotal() {
+            let totalQty = 0; let totalCash = 0;
+            for(let id in cart) {
+                totalQty += cart[id].qty;
+                totalCash += (cart[id].qty * cart[id].price);
+            }
+            document.getElementById('cart-count').innerText = totalQty;
+            document.getElementById('cart-total').innerText = totalCash;
+            document.getElementById('order-bar').style.display = (totalQty > 0) ? 'flex' : 'none';
+        }
+
+        function openForm() { document.getElementById('formModal').style.display = 'block'; }
+        function closeForm() { document.getElementById('formModal').style.display = 'none'; }
+
+        function sendOrder() {
+            const n = document.getElementById('cName').value;
+            const m = document.getElementById('cMobile').value;
+            const a = document.getElementById('cAddress').value;
+
+            if(!n || !m || !a) { alert("Please fill all details!"); return; }
+
+            let msg = *NEW ORDER - MADINA FRUITS*\n\n;
+            msg += 👤 *Customer:* ${n}\n📞 *Mobile:* ${m}\n🏠 *Address:* ${a}\n\n;
+            msg += *ORDER ITEMS:*\n;
+            
+            let finalTotal = 0;
+            for(let id in cart) {
+                if(cart[id].qty > 0) {
+                    let subTotal = cart[id].qty * cart[id].price;
+                    msg += - ${cart[id].name}: ${cart[id].qty} units (₹${subTotal})\n;
+                    finalTotal += subTotal;
+                }
+            }
+            msg += \n💰 *Grand Total: ₹${finalTotal}*;
+
+            window.open(https://wa.me/91XXXXXXXXXX?text=${encodeURIComponent(msg)});
+        }
+    </script>
+</body>
+</html>
