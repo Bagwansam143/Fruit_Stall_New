@@ -36,46 +36,85 @@
     </div>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAVGLFFYJCkfAi94Y4MuXXNlOqoK9FTbAg",
-            authDomain: "fruitstall-b7ec5.firebaseapp.com",
-            databaseURL: "https://fruitstall-b7ec5-default-rtdb.firebaseio.com",
-            projectId: "fruitstall-b7ec5",
-            appId: "1:327620665688:web:7f21a399b715c98746c52d"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+    const firebaseConfig = {
+        apiKey: "AIzaSyAVGLFFYJCkfAi94Y4MuXXNlOqoK9FTbAg",
+        authDomain: "fruitstall-b7ec5.firebaseapp.com",
+        databaseURL: "https://fruitstall-b7ec5-default-rtdb.firebaseio.com",
+        projectId: "fruitstall-b7ec5",
+        appId: "1:327620665688:web:7f21a399b715c98746c52d"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    let cart = {};
 
-        // Data loading logic
-        db.ref('fruits/').on('value', (snap) => {
-            console.log("Database Data Check:", snap.val()); // YE LINE CONSOLE MEIN DIKHEGI
-            
-            const container = document.getElementById('fruit-list');
-            container.innerHTML = ''; 
+    // Database se fruits load karna
+    db.ref('fruits/').on('value', (snap) => {
+        const container = document.getElementById('fruit-list');
+        container.innerHTML = ''; 
 
-            if(!snap.exists()) {
-                container.innerHTML = "<h3>Database khali hai! Admin se add karein.</h3>";
-                return;
-            }
+        if(!snap.exists()) {
+            container.innerHTML = "<h3>Shop khali hai! Admin se add karein.</h3>";
+            return;
+        }
 
-            snap.forEach((child) => {
-                const item = child.val();
-                container.innerHTML += `
-                    <div class="fruit-card">
-                        <img src="${item.img || 'https://via.placeholder.com/200'}">
-                        <h3>${item.name}</h3>
-                        <p>₹${item.price} / ${item.unit}</p>
-                        <div class="qty-box">
-                            <button class="qty-btn">-</button>
-                            <span style="font-size:20px; font-weight:bold;">0</span>
-                            <button class="qty-btn">+</button>
-                        </div>
-                    </div>`;
-            });
-        }, (error) => {
-            console.error("Firebase Error:", error);
-            document.getElementById('loader').innerText = "Error: " + error.message;
+        snap.forEach((child) => {
+            const item = child.val();
+            const id = child.key;
+            container.innerHTML += `
+                <div class="fruit-card">
+                    <img src="${item.img || 'https://via.placeholder.com/200'}">
+                    <h3>${item.name}</h3>
+                    <p>₹${item.price} / ${item.unit}</p>
+                    <div class="qty-box">
+                        <button class="qty-btn" onclick="updateQty('${id}', '${item.name}', ${item.price}, -1)">-</button>
+                        <span id="qty-${id}" style="font-size:20px; font-weight:bold;">0</span>
+                        <button class="qty-btn" onclick="updateQty('${id}', '${item.name}', ${item.price}, 1)">+</button>
+                    </div>
+                </div>`;
         });
-    </script>
+    });
+
+    // Quantity update karne ka function
+    function updateQty(id, name, price, change) {
+        if(!cart[id]) cart[id] = { name: name, price: price, qty: 0 };
+        cart[id].qty += change;
+        
+        if(cart[id].qty < 0) cart[id].qty = 0;
+        
+        document.getElementById('qty-' + id).innerText = cart[id].qty;
+        
+        updateOrderBar();
+    }
+
+    // Niche wali bar update karna
+    function updateOrderBar() {
+        let totalQty = 0, totalCash = 0;
+        for(let key in cart) {
+            totalQty += cart[key].qty;
+            totalCash += (cart[key].qty * cart[key].price);
+        }
+        
+        document.getElementById('cart-count').innerText = totalQty;
+        document.getElementById('cart-total').innerText = totalCash;
+        document.getElementById('order-bar').style.display = (totalQty > 0) ? 'flex' : 'none';
+    }
+
+    // WhatsApp par order bhejna
+    document.getElementById('order-bar').onclick = function() {
+        let msg = "NEW ORDER FROM MADINA FRUITS\n\n";
+        let total = 0;
+        for(let id in cart) {
+            if(cart[id].qty > 0) {
+                msg += • ${cart[id].name}: ${cart[id].qty}\n;
+                total += (cart[id].qty * cart[id].price);
+            }
+        }
+        msg += \n*Total Amount: ₹${total}*;
+        
+        // Yahan apna sahi WhatsApp number dalo
+        window.open(https://wa.me/91XXXXXXXXXX?text=${encodeURIComponent(msg)});
+    };
+</script>
 </body>
 </html>
+
