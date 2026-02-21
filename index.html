@@ -101,8 +101,8 @@
 
         for(let id in cart) {
             if(cart[id].qty > 0) {
-                // Sahi line yahan hai (No backticks used)
-                msg += "• " + cart[id].name + ": " + cart[id].qty + "\n";
+            msg += "• " + cart[id].name + ": " + cart[id].qty + "\n";
+            total += (cart[id].qty * cart[id].price);
                 total += (cart[id].qty * cart[id].price);
                 hasItems = true;
             }
@@ -118,6 +118,7 @@
 </script>
 </body>
 </html>
+
 
 
 
