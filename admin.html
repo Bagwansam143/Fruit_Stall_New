@@ -2,30 +2,163 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Stall Admin Panel</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stall Admin Panel - Madina Fruits</title>
+    
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <style>
-       .admin-box { max-width: 500px; margin: 50px auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .item-list { margin-top: 30px; }
-        .item-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
-        .del-btn { color: red; cursor: pointer; border: none; background: none; font-weight: bold; }
 
-        button:hover {
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+
+        :root {
+            --glass: rgba(255, 255, 255, 0.2);
+            --blur: blur(15px);
+            --border: rgba(255, 255, 255, 0.3);
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            min-height: 100vh;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Admin Box Styling */
+        .admin-box { 
+            max-width: 500px; 
+            width: 90%;
+            margin-top: 30px; 
+            background: var(--glass); 
+            backdrop-filter: var(--blur);
+            padding: 30px; 
+            border-radius: 25px; 
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
+        }
+
+        h2 { text-align: center; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Input Styling */
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+        }
+
+        /* Button Styling */
+        .btn-add { 
+            width: 100%;
+            padding: 15px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            margin-top: 15px;
+            transition: 0.3s;
+        }
+
+        .btn-add:hover {
             background: #2ecc71;
             transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
+
+        /* Inventory List Styling */
+        .item-list { 
+            margin-top: 40px; 
+            background: rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            border-radius: 15px;
+        }
+
+        .item-row { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            padding: 12px; 
+            border-bottom: 1px solid var(--border); 
+        }
+
+        .item-row:last-child { border-bottom: none; }
+
+        .del-btn { 
+            color: #ff4d4d; 
+            cursor: pointer; 
+            border: 1px solid #ff4d4d; 
+            background: rgba(255, 77, 77, 0.1); 
+            font-weight: bold; 
+            padding: 5px 10px;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+
+        .del-btn:hover {
+            background: #ff4d4d;
+            color: white;
+        }
+
+        .back-link {
+            margin-top: 20px;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            border: 1px solid white;
+            padding: 8px 20px;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+
+        .back-link:hover {
+            background: white;
+            color: #e73c7e;
+        }
+
+
+.nav-container a:hover {
+            transform: translateY(-10px) rotate(1deg); /* Hover par thoda tilt hoga */
+background: rgba(255, 255, 255, 0.36);
+box-shadow: 0 40px 80px rgba(0, 0, 0, 0.20);
+        }
+
+
     </style>
 </head>
-<body style="background: #f0f2f5;">
+<body>
+
+    <h1 style="text-shadow: 2px 4px 10px rgba(0,0,0,0.2);">⚙️ Admin Panel</h1>
+
     <div class="admin-box">
-        <h2>⚙️ Inventory Manager</h2>
+        <h2>Inventory Manager</h2>
+        
         <input type="text" id="fName" placeholder="Fruit Name (e.g. Alphonso Mango)">
         <input type="number" id="fPrice" placeholder="Price (e.g. 500)">
         <input type="text" id="fUnit" placeholder="Unit (e.g. kg or dozen)">
         <input type="text" id="fImg" placeholder="Image URL">
+        
         <button class="btn-add" onclick="pushFruit()">Update Live Shop</button>
 
         <div class="item-list" id="itemList">
@@ -33,17 +166,19 @@
             </div>
     </div>
 
+    <a href="homepage.html" class="back-link">← Back to Shop</a>
+
     <script>
-        // PASTE THE SAME FIREBASE CONFIG HERE
+        // FIREBASE CONFIG
         const firebaseConfig = { 
             apiKey: "AIzaSyAVGLFFYJCkfAi94Y4MuXXNlOqoK9FTbAg",
-  authDomain: "fruitstall-b7ec5.firebaseapp.com",
-  databaseURL: "https://fruitstall-b7ec5-default-rtdb.firebaseio.com",
-  projectId: "fruitstall-b7ec5",
-  storageBucket: "fruitstall-b7ec5.firebasestorage.app",
-  messagingSenderId: "327620665688",
-  appId: "1:327620665688:web:7f21a399b715c98746c52d",
-  measurementId: "G-0QM785X27Y"
+            authDomain: "fruitstall-b7ec5.firebaseapp.com",
+            databaseURL: "https://fruitstall-b7ec5-default-rtdb.firebaseio.com",
+            projectId: "fruitstall-b7ec5",
+            storageBucket: "fruitstall-b7ec5.firebasestorage.app",
+            messagingSenderId: "327620665688",
+            appId: "1:327620665688:web:7f21a399b715c98746c52d",
+            measurementId: "G-0QM785X27Y"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
@@ -55,18 +190,29 @@
             const img = document.getElementById('fImg').value;
             if(name && price) {
                 db.ref('fruits/').push({ name, price, unit, img });
-                alert("Added!");
+                alert("Fruit added successfully!");
+                // Clear inputs
+                document.getElementById('fName').value = '';
+                document.getElementById('fPrice').value = '';
+                document.getElementById('fUnit').value = '';
+                document.getElementById('fImg').value = '';
+            } else {
+                alert("Please enter at least name and price!");
             }
         }
 
         db.ref('fruits/').on('value', (snap) => {
             const list = document.getElementById('itemList');
             list.innerHTML = '<h4>Current Live Stock:</h4>';
+            if(!snap.exists()) {
+                list.innerHTML += "<p>No fruits in stock.</p>";
+                return;
+            }
             snap.forEach((child) => {
                 const data = child.val();
                 list.innerHTML += `
                     <div class="item-row">
-                        <span>${data.name} - ₹${data.price}</span>
+                        <span><strong>${data.name}</strong> - ₹${data.price}</span>
                         <button class="del-btn" onclick="deleteItem('${child.key}')">Remove</button>
                     </div>`;
             });
@@ -79,8 +225,4 @@
         }
     </script>
 </body>
-
 </html>
-
-
-
