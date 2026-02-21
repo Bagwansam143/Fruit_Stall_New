@@ -48,7 +48,7 @@
             const unit = document.getElementById('fUnit').value;
             const img = document.getElementById('fImg').value;
             if(name && price) {
-                db.ref('stall/').push({ name, price, unit, img });
+                db.ref('fruits/').push({ name, price, unit, img });
                 alert("Added!");
             }
         }
@@ -75,3 +75,4 @@
 </body>
 
 </html>
+
