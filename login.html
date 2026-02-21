@@ -88,7 +88,7 @@
         <h2>🔒 Admin Login</h2>
         <input type="email" id="email" placeholder="Admin Email">
         <input type="password" id="password" placeholder="Password">
-        <button onclick="signIn()">Enter Dashboard</button>
+        <button onclick="signIn()">Login</button>
         <p style="margin-top: 20px; font-size: 12px; opacity: 0.8;">Authorized Personnel Only</p>
     </div>
 
@@ -121,7 +121,7 @@
             auth.signInWithEmailAndPassword(e, p)
             .then((userCredential) => {
                 // Success: Direct Admin page par bhej do
-                window.location.href = "admin.html";
+                window.location.href = "inventry.html";
             })
             .catch((error) => {
                 // Failure: Error dikhao
@@ -132,3 +132,4 @@
 </body>
 
 </html>
+
