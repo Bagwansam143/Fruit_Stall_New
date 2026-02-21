@@ -108,7 +108,7 @@
     let cart = {};
 
     // Data Fetching logic
-    db.ref('/').on('value', (snap) => {
+    db.ref('fruits/').on('value', (snap) => {
         const container = document.getElementById('fruit-list');
         
         if(!snap.exists()) {
@@ -187,4 +187,5 @@
 </script>
 </body>
 </html>
+
 
