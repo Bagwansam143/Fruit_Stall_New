@@ -46,6 +46,53 @@
             color: white;
         }
 
+.nav-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .nav-container a {
+            background: var(--glass);
+            backdrop-filter: var(--blur);
+            border: 1px solid var(--border);
+            color: white;
+            text-decoration: none;
+            padding: 10px 25px;
+            font-weight: 600;
+            border-radius: 12px; /* Boxy shape */
+            text-transform: uppercase;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .nav-container a:hover {
+            transform: translateY(-10px) rotate(1deg); /* Hover par thoda tilt hoga */
+background: rgba(255, 255, 255, 0.36);
+box-shadow: 0 40px 80px rgba(0, 0, 0, 0.20);
+        }
+
+.home {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 10px;
+            border-radius: 30px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            width: 80%;
+            max-width: 150px;
+            text-align: center;
+            color: white;
+        }
+
+.home a:hover {
+            transform: translateY(-10px) rotate(2deg); /* Hover par thoda tilt hoga */
+background: rgba(255, 255, 255, 0.36);
+box-shadow: 0 40px 80px rgba(0, 0, 0, 0.20);
+        }
+
         h2 { margin-bottom: 25px; font-weight: 600; }
 
         input {
@@ -80,17 +127,27 @@
             transform: translateY(-3px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
+
+
+
     </style>
 </head>
 <body>
-    <nav><a href="index.html">Home</a>
+
+
     <div class="login-card">
+
+
+<div class="nav-container">
+        <a href="homepage.html">🏠 Home</a>
+    </div>
         <h2>🔒 Admin Login</h2>
         <input type="email" id="email" placeholder="Admin Email">
         <input type="password" id="password" placeholder="Password">
-        <button onclick="signIn()">Login</button>
+        <button onclick="signIn()"> Login </button>
         <p style="margin-top: 20px; font-size: 12px; opacity: 0.8;">Authorized Personnel Only</p>
-    </div>
+   
+ </div>
 
     <script>
         // 2. Firebase Configuration (Merging Database & Auth)
@@ -121,7 +178,7 @@
             auth.signInWithEmailAndPassword(e, p)
             .then((userCredential) => {
                 // Success: Direct Admin page par bhej do
-                window.location.href = "inventry.html";
+                window.location.href = "admin.html";
             })
             .catch((error) => {
                 // Failure: Error dikhao
@@ -130,6 +187,4 @@
         }
     </script>
 </body>
-
 </html>
-
