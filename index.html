@@ -3,39 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Madina Fruits</title>
-    
+    <title>Madina Fruits - Live</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap');
-        body { margin: 0; font-family: 'Outfit', sans-serif; background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab); background-size: 400% 400%; animation: gradientBG 15s ease infinite; min-height: 100vh; color: white; text-align: center; }
-        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-        nav { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px); padding: 15px; display: flex; justify-content: space-around; position: sticky; top: 0; z-index: 1000; }
-        nav a { color: white; text-decoration: none; font-weight: 600; cursor: pointer; }
-        .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 20px; }
-        .fruit-card { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 25px; padding: 20px; width: 260px; }
-        .fruit-card img { width: 100%; height: 180px; object-fit: cover; border-radius: 15px; }
-        .qty-box { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 15px; }
-        .qty-btn { background: white; color: #e73c7e; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; font-size: 20px; font-weight: bold; }
-        #order-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 450px; background: #27ae60; color: white; padding: 18px 25px; border-radius: 50px; display: none; justify-content: space-between; align-items: center; cursor: pointer; z-index: 5000; }
+        body { margin: 0; font-family: sans-serif; background: #f4f4f4; text-align: center; color: #333; }
+        .nav { background: #e73c7e; padding: 15px; color: white; font-weight: bold; position: sticky; top: 0; }
+        .container { display: flex; flex-wrap: wrap; justify-content: center; padding: 20px; gap: 15px; }
+        .card { background: white; border-radius: 15px; padding: 15px; width: 200px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .card img { width: 100%; height: 120px; object-fit: cover; border-radius: 10px; }
+        .qty-box { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 10px; }
+        .btn { background: #e73c7e; color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 18px; }
+        #order-bar { position: fixed; bottom: 0; width: 100%; background: #27ae60; color: white; padding: 20px; display: none; justify-content: space-around; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-    <nav><a>Home</a><a href="login.html">Admin</a></nav>
-    <header><h1>🍎 Madina Fruits</h1></header>
 
-    <div class="container" id="fruit-list">
-        <h3 id="loader">Database se connect ho raha hai...</h3>
-    </div>
+<div class="nav">Madina Fruits - Fresh Delivery</div>
+<div class="container" id="list">Loading fruits...</div>
 
-    <div id="order-bar">
-        <div><span id="cart-count">0</span> Items | ₹<span id="cart-total">0</span></div>
-        <strong>Order Now →</strong>
-    </div>
+<div id="order-bar" onclick="sendWhatsApp()">
+    <span>Items: <span id="c-count">0</span></span>
+    <span>Total: ₹<span id="c-total">0</span></span>
+    <span>Order Now →</span>
+</div>
 
-    <script>
+<script>
     const firebaseConfig = {
         apiKey: "AIzaSyAVGLFFYJCkfAi94Y4MuXXNlOqoK9FTbAg",
         authDomain: "fruitstall-b7ec5.firebaseapp.com",
@@ -47,74 +40,63 @@
     const db = firebase.database();
     let cart = {};
 
-    // Database se fruits load karna
+    // Data Load Karo
     db.ref('fruits/').on('value', (snap) => {
-        const container = document.getElementById('fruit-list');
-        container.innerHTML = ''; 
-
-        if(!snap.exists()) {
-            container.innerHTML = "<h3>Shop khali hai! Admin se add karein.</h3>";
-            return;
-        }
+        const listDiv = document.getElementById('list');
+        listDiv.innerHTML = '';
+        if(!snap.exists()) { listDiv.innerHTML = "Dukan khali hai!"; return; }
 
         snap.forEach((child) => {
-            const item = child.val();
+            const f = child.val();
             const id = child.key;
-            container.innerHTML += `
-                <div class="fruit-card">
-                    <img src="${item.img || 'https://via.placeholder.com/200'}">
-                    <h3>${item.name}</h3>
-                    <p>₹${item.price} / ${item.unit}</p>
+            listDiv.innerHTML += `
+                <div class="card">
+                    <img src="${f.img || 'https://via.placeholder.com/150'}">
+                    <h4>${f.name}</h4>
+                    <p>₹${f.price} / ${f.unit}</p>
                     <div class="qty-box">
-                        <button class="qty-btn" onclick="updateQty('${id}', '${item.name}', ${item.price}, -1)">-</button>
-                        <span id="qty-${id}" style="font-size:20px; font-weight:bold;">0</span>
-                        <button class="qty-btn" onclick="updateQty('${id}', '${item.name}', ${item.price}, 1)">+</button>
+                        <button class="btn" onclick="changeQty('${id}', '${f.name}', ${f.price}, -1)">-</button>
+                        <b id="q-${id}">0</b>
+                        <button class="btn" onclick="changeQty('${id}', '${f.name}', ${f.price}, 1)">+</button>
                     </div>
                 </div>`;
         });
     });
 
-    // Quantity update karne ka function
-    function updateQty(id, name, price, change) {
+    // Button wala function
+    window.changeQty = function(id, name, price, change) {
         if(!cart[id]) cart[id] = { name: name, price: price, qty: 0 };
         cart[id].qty += change;
-        
         if(cart[id].qty < 0) cart[id].qty = 0;
-        
-        document.getElementById('qty-' + id).innerText = cart[id].qty;
-        
-        updateOrderBar();
-    }
 
-    // Niche wali bar update karna
-    function updateOrderBar() {
-        let totalQty = 0, totalCash = 0;
+        document.getElementById('q-' + id).innerText = cart[id].qty;
+        updateBar();
+    };
+
+    function updateBar() {
+        let tQty = 0, tPrice = 0;
         for(let key in cart) {
-            totalQty += cart[key].qty;
-            totalCash += (cart[key].qty * cart[key].price);
+            tQty += cart[key].qty;
+            tPrice += (cart[key].qty * cart[key].price);
         }
-        
-        document.getElementById('cart-count').innerText = totalQty;
-        document.getElementById('cart-total').innerText = totalCash;
-        document.getElementById('order-bar').style.display = (totalQty > 0) ? 'flex' : 'none';
+        document.getElementById('c-count').innerText = tQty;
+        document.getElementById('c-total').innerText = tPrice;
+        document.getElementById('order-bar').style.display = (tQty > 0) ? 'flex' : 'none';
     }
 
-    // WhatsApp par order bhejna
-    document.getElementById('order-bar').onclick = function() {
-        let msg = "NEW ORDER FROM MADINA FRUITS\n\n";
+    window.sendWhatsApp = function() {
+        let text = "Madina Fruits Order\n\n";
         let total = 0;
-        for(let id in cart) {
-            if(cart[id].qty > 0) {
-                msg += • ${cart[id].name}: ${cart[id].qty}\n;
-                total += (cart[id].qty * cart[id].price);
+        for(let key in cart) {
+            if(cart[key].qty > 0) {
+                text += • ${cart[key].name} x ${cart[key].qty}\n;
+                total += (cart[key].qty * cart[key].price);
             }
         }
-        msg += \n*Total Amount: ₹${total}*;
-        
-        // Yahan apna sahi WhatsApp number dalo
-        window.open(https://wa.me/91XXXXXXXXXX?text=${encodeURIComponent(msg)});
+        text += \n*Total: ₹${total}*;
+        window.open("https://wa.me/91XXXXXXXXXX?text=" + encodeURIComponent(text));
     };
 </script>
+
 </body>
 </html>
-
