@@ -47,73 +47,51 @@
     const db = firebase.database();
     let cart = {};
 
-    // Database se fruits load karna
+    // Sahi folder 'fruits' se data khichna
     db.ref('fruits/').on('value', (snap) => {
-        const container = document.getElementById('fruit-list');
-        container.innerHTML = ''; 
+        const listDiv = document.getElementById('fruit-list');
+        listDiv.innerHTML = ''; 
 
         if(!snap.exists()) {
-            container.innerHTML = "<h3>Shop khali hai! Admin se add karein.</h3>";
+            listDiv.innerHTML = "<h3>Database mein koi fruit nahi hai!</h3>";
             return;
         }
 
         snap.forEach((child) => {
-            const item = child.val();
+            const f = child.val();
             const id = child.key;
-            container.innerHTML += `
+            listDiv.innerHTML += `
                 <div class="fruit-card">
-                    <img src="${item.img || 'https://via.placeholder.com/200'}">
-                    <h3>${item.name}</h3>
-                    <p>₹${item.price} / ${item.unit}</p>
+                    <img src="${f.img || 'https://via.placeholder.com/150'}">
+                    <h3>${f.name}</h3>
+                    <p>₹${f.price} / ${f.unit}</p>
                     <div class="qty-box">
-                        <button class="qty-btn" onclick="updateQty('${id}', '${item.name}', ${item.price}, -1)">-</button>
+                        <button class="qty-btn" onclick="window.changeQty('${id}', '${f.name}', ${f.price}, -1)">-</button>
                         <span id="qty-${id}" style="font-size:20px; font-weight:bold;">0</span>
-                        <button class="qty-btn" onclick="updateQty('${id}', '${item.name}', ${item.price}, 1)">+</button>
+                        <button class="qty-btn" onclick="window.changeQty('${id}', '${f.name}', ${f.price}, 1)">+</button>
                     </div>
                 </div>`;
         });
     });
 
-    // Quantity update karne ka function
-    function updateQty(id, name, price, change) {
+    // Quantity Function (window. lagane se button kaam karega)
+    window.changeQty = function(id, name, price, change) {
         if(!cart[id]) cart[id] = { name: name, price: price, qty: 0 };
         cart[id].qty += change;
-        
         if(cart[id].qty < 0) cart[id].qty = 0;
         
         document.getElementById('qty-' + id).innerText = cart[id].qty;
         
-        updateOrderBar();
-    }
-
-    // Niche wali bar update karna
-    function updateOrderBar() {
-        let totalQty = 0, totalCash = 0;
+        let tQty = 0, tPrice = 0;
         for(let key in cart) {
-            totalQty += cart[key].qty;
-            totalCash += (cart[key].qty * cart[key].price);
+            tQty += cart[key].qty;
+            tPrice += (cart[key].qty * cart[key].price);
         }
-        
-        document.getElementById('cart-count').innerText = totalQty;
-        document.getElementById('cart-total').innerText = totalCash;
-        document.getElementById('order-bar').style.display = (totalQty > 0) ? 'flex' : 'none';
-    }
-
-    // WhatsApp par order bhejna
-    document.getElementById('order-bar').onclick = function() {
-        let msg = "NEW ORDER FROM MADINA FRUITS\n\n";
-        let total = 0;
-        for(let id in cart) {
-            if(cart[id].qty > 0) {
-                msg += • ${cart[id].name}: ${cart[id].qty}\n;
-                total += (cart[id].qty * cart[id].price);
-            }
-        }
-        msg += \n*Total Amount: ₹${total}*;
-        
-        // Yahan apna sahi WhatsApp number dalo
-        window.open(https://wa.me/919767105224?text=${encodeURIComponent(msg)});
+        document.getElementById('cart-count').innerText = tQty;
+        document.getElementById('cart-total').innerText = tPrice;
+        document.getElementById('order-bar').style.display = (tQty > 0) ? 'flex' : 'none';
     };
 </script>
 </body>
 </html>
+
