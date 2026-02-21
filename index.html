@@ -101,22 +101,24 @@
 
         for(let id in cart) {
             if(cart[id].qty > 0) {
-                msg += "•" ${cart[id].name}: ${cart[id].qty}\n;
+                // Sahi line yahan hai (No backticks used)
+                msg += "• " + cart[id].name + ": " + cart[id].qty + "\n";
                 total += (cart[id].qty * cart[id].price);
                 hasItems = true;
             }
         }
 
         if(!hasItems) return;
-        msg += \n*Total Bill: ₹${total}*;
+        msg += "\nTotal Bill: " + total;
         
-        const myNumber = "91XXXXXXXXXX"; // APNA NUMBER YAHAN DALO
+        const myNumber = "91XXXXXXXXXX"; // APNA SAHI NUMBER DALO
         const url = "https://wa.me/" + myNumber + "?text=" + encodeURIComponent(msg);
         window.open(url, '_blank');
     };
 </script>
 </body>
 </html>
+
 
 
 
