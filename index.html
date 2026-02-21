@@ -47,13 +47,14 @@
     const db = firebase.database();
     let cart = {};
 
-    // Sahi folder 'fruits' se data khichna
+    // Data Load Function
     db.ref('fruits/').on('value', (snap) => {
         const listDiv = document.getElementById('fruit-list');
+        if (!listDiv) return;
         listDiv.innerHTML = ''; 
 
         if(!snap.exists()) {
-            listDiv.innerHTML = "<h3>Database mein koi fruit nahi hai!</h3>";
+            listDiv.innerHTML = "<h3>Shop khali hai!</h3>";
             return;
         }
 
@@ -74,7 +75,7 @@
         });
     });
 
-    // Quantity Function (window. lagane se button kaam karega)
+    // Quantity Function
     window.changeQty = function(id, name, price, change) {
         if(!cart[id]) cart[id] = { name: name, price: price, qty: 0 };
         cart[id].qty += change;
@@ -90,7 +91,9 @@
         document.getElementById('cart-count').innerText = tQty;
         document.getElementById('cart-total').innerText = tPrice;
         document.getElementById('order-bar').style.display = (tQty > 0) ? 'flex' : 'none';
-   // WhatsApp Order Function
+    };
+
+    // WhatsApp Function
     window.sendWhatsApp = function() {
         let msg = "NEW ORDER - MADINA FRUITS\n\n";
         let total = 0;
@@ -104,20 +107,17 @@
             }
         }
 
-        if(!hasItems) {
-            alert("Pehle kuch select toh karo bhai!");
-            return;
-        }
-
+        if(!hasItems) return;
         msg += \n*Total Bill: ₹${total}*;
         
-        // APNA SAHI NUMBER YAHAN DALO (91 ke saath)
-        const myNumber = "919767105224"; 
-        window.open(https://wa.me/${myNumber}?text=${encodeURIComponent(msg)}, '_blank');
+        const myNumber = "91XXXXXXXXXX"; // APNA NUMBER YAHAN DALO
+        const url = "https://wa.me/" + myNumber + "?text=" + encodeURIComponent(msg);
+        window.open(url, '_blank');
     };
 </script>
 </body>
 </html>
+
 
 
 
