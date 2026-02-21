@@ -92,100 +92,98 @@
     </div>
 
     <script>
-        // Sahi configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAVGLFFYJCkfAi94Y4MuXXNlOqoK9FTbAg",
-  authDomain: "fruitstall-b7ec5.firebaseapp.com",
-  databaseURL: "https://fruitstall-b7ec5-default-rtdb.firebaseio.com",
-  projectId: "fruitstall-b7ec5",
-  storageBucket: "fruitstall-b7ec5.firebasestorage.app",
-  messagingSenderId: "327620665688",
-  appId: "1:327620665688:web:7f21a399b715c98746c52d",
-  measurementId: "G-0QM785X27Y"
-        };
+    // Firebase Configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyAVGLFFYJCkfAi94Y4MuXXNlOqoK9FTbAg",
+        authDomain: "fruitstall-b7ec5.firebaseapp.com",
+        databaseURL: "https://fruitstall-b7ec5-default-rtdb.firebaseio.com",
+        projectId: "fruitstall-b7ec5",
+        storageBucket: "fruitstall-b7ec5.firebasestorage.app",
+        messagingSenderId: "327620665688",
+        appId: "1:327620665688:web:7f21a399b715c98746c52d",
+    };
 
-        // Initialize Firebase Compat
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    let cart = {};
 
-        let cart = {};
+    // Data Fetching logic
+    db.ref('fruits/').on('value', (snap) => {
+        const container = document.getElementById('fruit-list');
+        
+        if(!snap.exists()) {
+            container.innerHTML = "<h3>Shop is currently empty. Check Firebase Data!</h3>";
+            return;
+        }
 
-        // Data Khichne ka function
-        db.ref('fruits/').on('value', (snap) => {
-            const container = document.getElementById('fruit-list');
-            container.innerHTML = ''; // Clear loader
-            
-            if(!snap.exists()) {
-                container.innerHTML = "<h3>Shop is currently empty. Please check back later!</h3>";
-                return;
-            }
-
-            snap.forEach((child) => {
-                const item = child.val();
-                const id = child.key;
-                container.innerHTML += `
-                    <div class="fruit-card">
-                        <img src="${item.img || 'https://via.placeholder.com/200'}" onerror="this.src='https://via.placeholder.com/200'">
-                        <h3>${item.name}</h3>
-                        <p>₹${item.price} / ${item.unit}</p>
-                        <div class="qty-box">
-                            <button class="qty-btn" onclick="updateQty('${id}', '${item.name}', ${item.price}, -1)">-</button>
-                            <span id="qty-${id}" style="font-size:20px; font-weight:bold;">0</span>
-                            <button class="qty-btn" onclick="updateQty('${id}', '${item.name}', ${item.price}, 1)">+</button>
-                        </div>
-                    </div>`;
-            });
-        }, (error) => {
-            document.getElementById('loading-msg').innerText = "Database Error: " + error.message;
+        container.innerHTML = ''; // Sirf tab clear karein jab data mil jaye
+        snap.forEach((child) => {
+            const item = child.val();
+            const id = child.key;
+            container.innerHTML += `
+                <div class="fruit-card">
+                    <img src="${item.img || 'https://via.placeholder.com/200'}" onerror="this.src='https://via.placeholder.com/200'">
+                    <h3>${item.name}</h3>
+                    <p>₹${item.price} / ${item.unit}</p>
+                    <div class="qty-box">
+                        <button class="qty-btn" onclick="updateQty('${id}', '${item.name}', ${item.price}, -1)">-</button>
+                        <span id="qty-${id}" style="font-size:20px; font-weight:bold;">0</span>
+                        <button class="qty-btn" onclick="updateQty('${id}', '${item.name}', ${item.price}, 1)">+</button>
+                    </div>
+                </div>`;
         });
+    }, (error) => {
+        console.error(error);
+        document.getElementById('fruit-list').innerHTML = "<h3>Database Error: Permission Denied or Connection Failed</h3>";
+    });
 
-        function updateQty(id, name, price, change) {
-            if(!cart[id]) cart[id] = { name: name, price: price, qty: 0 };
-            cart[id].qty += change;
-            if(cart[id].qty < 0) cart[id].qty = 0;
-            
-            document.getElementById('qty-' + id).innerText = cart[id].qty;
-            calculateTotal();
+    // Cart and Order Logic
+    function updateQty(id, name, price, change) {
+        if(!cart[id]) cart[id] = { name: name, price: price, qty: 0 };
+        cart[id].qty += change;
+        if(cart[id].qty < 0) cart[id].qty = 0;
+        document.getElementById('qty-' + id).innerText = cart[id].qty;
+        calculateTotal();
+    }
+
+    function calculateTotal() {
+        let totalQty = 0; let totalCash = 0;
+        for(let id in cart) {
+            totalQty += cart[id].qty;
+            totalCash += (cart[id].qty * cart[id].price);
         }
+        document.getElementById('cart-count').innerText = totalQty;
+        document.getElementById('cart-total').innerText = totalCash;
+        document.getElementById('order-bar').style.display = (totalQty > 0) ? 'flex' : 'none';
+    }
 
-        function calculateTotal() {
-            let totalQty = 0; let totalCash = 0;
-            for(let id in cart) {
-                totalQty += cart[id].qty;
-                totalCash += (cart[id].qty * cart[id].price);
+    function openForm() { document.getElementById('formModal').style.display = 'block'; }
+    function closeForm() { document.getElementById('formModal').style.display = 'none'; }
+
+    function sendOrder() {
+        const n = document.getElementById('cName').value;
+        const m = document.getElementById('cMobile').value;
+        const a = document.getElementById('cAddress').value;
+
+        if(!n || !m || !a) { alert("Please fill all details!"); return; }
+
+        // Sahi template literals yahan use kiye hain:
+        let msg = *NEW ORDER - MADINA FRUITS*\n\n;
+        msg += 👤 *Customer:* ${n}\n📞 *Mobile:* ${m}\n🏠 *Address:* ${a}\n\n;
+        msg += *ORDER ITEMS:*\n;
+        
+        let finalTotal = 0;
+        for(let id in cart) {
+            if(cart[id].qty > 0) {
+                let subTotal = cart[id].qty * cart[id].price;
+                msg += - ${cart[id].name}: ${cart[id].qty} units (₹${subTotal})\n;
+                finalTotal += subTotal;
             }
-            document.getElementById('cart-count').innerText = totalQty;
-            document.getElementById('cart-total').innerText = totalCash;
-            document.getElementById('order-bar').style.display = (totalQty > 0) ? 'flex' : 'none';
         }
+        msg += \n💰 *Grand Total: ₹${finalTotal}*;
 
-        function openForm() { document.getElementById('formModal').style.display = 'block'; }
-        function closeForm() { document.getElementById('formModal').style.display = 'none'; }
-
-        function sendOrder() {
-            const n = document.getElementById('cName').value;
-            const m = document.getElementById('cMobile').value;
-            const a = document.getElementById('cAddress').value;
-
-            if(!n || !m || !a) { alert("Please fill all details!"); return; }
-
-            let msg = *NEW ORDER - MADINA FRUITS*\n\n;
-            msg += 👤 *Customer:* ${n}\n📞 *Mobile:* ${m}\n🏠 *Address:* ${a}\n\n;
-            msg += *ORDER ITEMS:*\n;
-            
-            let finalTotal = 0;
-            for(let id in cart) {
-                if(cart[id].qty > 0) {
-                    let subTotal = cart[id].qty * cart[id].price;
-                    msg += - ${cart[id].name}: ${cart[id].qty} units (₹${subTotal})\n;
-                    finalTotal += subTotal;
-                }
-            }
-            msg += \n💰 *Grand Total: ₹${finalTotal}*;
-
-            window.open(https://wa.me/91XXXXXXXXXX?text=${encodeURIComponent(msg)});
-        }
-    </script>
+        window.open(https://wa.me/919767105224?text=${encodeURIComponent(msg)});
+    }
+</script>
 </body>
-
 </html>
