@@ -30,10 +30,10 @@
         <h3 id="loader">Database se connect ho raha hai...</h3>
     </div>
 
-    <div id="order-bar">
-        <div><span id="cart-count">0</span> Items | ₹<span id="cart-total">0</span></div>
-        <strong>Order Now →</strong>
-    </div>
+    <div id="order-bar" onclick="window.sendWhatsApp()" style="cursor:pointer;">
+    <div><span id="cart-count">0</span> Items | ₹<span id="cart-total">0</span></div>
+    <strong>Order Now →</strong>
+</div>
 
     <script>
     const firebaseConfig = {
@@ -94,4 +94,5 @@
 </script>
 </body>
 </html>
+
 
