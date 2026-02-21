@@ -90,9 +90,34 @@
         document.getElementById('cart-count').innerText = tQty;
         document.getElementById('cart-total').innerText = tPrice;
         document.getElementById('order-bar').style.display = (tQty > 0) ? 'flex' : 'none';
+   // WhatsApp Order Function
+    window.sendWhatsApp = function() {
+        let msg = "NEW ORDER - MADINA FRUITS\n\n";
+        let total = 0;
+        let hasItems = false;
+
+        for(let id in cart) {
+            if(cart[id].qty > 0) {
+                msg += • ${cart[id].name}: ${cart[id].qty}\n;
+                total += (cart[id].qty * cart[id].price);
+                hasItems = true;
+            }
+        }
+
+        if(!hasItems) {
+            alert("Pehle kuch select toh karo bhai!");
+            return;
+        }
+
+        msg += \n*Total Bill: ₹${total}*;
+        
+        // APNA SAHI NUMBER YAHAN DALO (91 ke saath)
+        const myNumber = "919767105224"; 
+        window.open(https://wa.me/${myNumber}?text=${encodeURIComponent(msg)}, '_blank');
     };
 </script>
 </body>
 </html>
+
 
 
