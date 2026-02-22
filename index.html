@@ -244,9 +244,9 @@ box-shadow: 0 40px 80px rgba(0, 0, 0, 0.20);
                         <h3>${f.name}</h3>
                         <p>₹${f.price} / ${f.unit}</p>
                         <div class="qty-box">
-                            <button class="qty-btn" onclick="window.changeQty('${id}', '${f.name}', ${f.price}, -1)">-</button>
+                            <button class="qty-btn" onclick="window.changeQty('${id}', '${f.name}', ${f.price}, -0.5)">-</button>
                             <span id="qty-${id}" style="font-size:20px; font-weight:bold;">0</span>
-                            <button class="qty-btn" onclick="window.changeQty('${id}', '${f.name}', ${f.price}, 1)">+</button>
+                            <button class="qty-btn" onclick="window.changeQty('${id}', '${f.name}', ${f.price}, 0.5)">+</button>
                         </div>
                     </div>`;
             });
@@ -275,11 +275,29 @@ window.sendWhatsApp = function() {
         alert("Bhai, pehle kuch fruit toh select karo!");
         return;
     }
+
+
+
     document.getElementById('checkoutModal').style.display = 'block';
 };
 
 // Step 2: Form bharne ke baad final send logic
 window.finalSend = function() {
+
+// 1. Pehle Total Bill Check Karo
+    let currentTotal = 0;
+    for(let id in cart) {
+        if(cart[id].qty > 0) {
+            currentTotal += (cart[id].qty * cart[id].price);
+        }
+    }
+
+    // 2. Agar Total 499 se kam hai toh aage mat badhne do
+    if(currentTotal < 499) {
+        alert("Bhai, Minimum order value ₹499 honi chahiye!\n\nAapka abhi ka total ₹" + currentTotal + " hai.\nKripya kuch aur items add karein.");
+        document.getElementById('checkoutModal').style.display = 'none'; // Modal band kar do taaki wo aur shopping kar sake
+        return;
+    }
     const cName = document.getElementById('custName').value.trim();
     const cPhone = document.getElementById('custPhone').value.trim();
     const cAddress = document.getElementById('custAddress').value.trim();
@@ -298,7 +316,7 @@ window.finalSend = function() {
         return;
     }
 
-    let msg = "NEW ORDER - MADINA FRUITS\n";
+    let msg = "NEW ORDER - Ak FRUITS\n";
     msg += "------------------------------\n";
     msg += "👤 Name: " + cName + "\n";
     msg += "📞 Phone: " + cPhone + "\n";
@@ -318,6 +336,8 @@ window.finalSend = function() {
             total += (cart[id].qty * cart[id].price);
         }
     }
+
+ 
 
     msg += "\n⭐ Total Bill: ₹" + total + "\n";
     msg += "------------------------------\n";
