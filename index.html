@@ -146,12 +146,58 @@ box-shadow: 0 40px 80px rgba(0, 0, 0, 0.20);
             z-index: 2000;
             cursor: pointer;
         }
+
+/* Checkout Form Modal */
+.modal {
+    display: none; 
+    position: fixed; 
+    z-index: 5000; 
+    left: 0; top: 0; width: 100%; height: 100%; 
+    background: rgba(0, 0, 0, 0.4); /* Piche ka parda halka dark */
+    backdrop-filter: blur(10px); /* Piche ka background blur karega */
+}
+
+.modal-content {
+    background: rgba(255, 255, 255, 0.52); /* Glass effect */
+    backdrop-filter: blur(20px);
+    margin: 10% auto; 
+    padding: 30px; 
+    width: 85%; max-width: 400px; 
+    border-radius: 30px; 
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white; /* Text white rakhenge glass par achha lagta hai */
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    text-align: center;
+}
+
+.modal-content h2 { 
+    font-weight: 700; 
+    margin-bottom: 20px;
+    text-shadow: 0 2px 4px rgba(0.2,0,0,0.25);
+}
+
+
+.modal-content input, .modal-content textarea {
+    width: 100%; padding: 12px; margin: 10px 0; 
+    border-radius: 12px; border: 1px solid #ddd;
+    box-sizing: border-box; font-family: 'Outfit', sans-serif;
+    font-size: 1rem;
+}
+
+.btn-confirm {
+    background: #25d366; color: white; border: none; 
+    width: 65%; padding: 15px; border-radius: 12px;
+    font-weight: bold; cursor: pointer; font-size: 1.1rem;
+    margin-top: 10px; transition: 0.3s;
+}
+
+.btn-confirm:hover { background: #128c7e; transform: scale(1.02); }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>🍎 Madina Fruits</h1>
+        <h1> 🍎 AK Fruits</h1>
     </header>
 
     <div class="nav-container">
@@ -221,23 +267,87 @@ box-shadow: 0 40px 80px rgba(0, 0, 0, 0.20);
             document.getElementById('order-bar').style.display = (tQty > 0) ? 'flex' : 'none';
         };
 
-        window.sendWhatsApp = function() {
-            let msg = "NEW ORDER - MADINA FRUITS\n\n";
-            let total = 0;
-            let hasItems = false;
-            for(let id in cart) {
-                if(cart[id].qty > 0) {
-                    msg += "• " + cart[id].name + ": " + cart[id].qty + "\n";
-                    total += (cart[id].qty * cart[id].price);
-                    hasItems = true;
-                }
-            }
-            if(!hasItems) return;
-            msg += "\n*Total Bill: ₹" + total + "*";
-            const myNumber = "919767105224"; 
-            const url = "https://wa.me/" + myNumber + "?text=" + encodeURIComponent(msg);
-            window.open(url, '_blank');
-        };
+       // Step 1: Jab user 'Order Now' bar par click kare
+window.sendWhatsApp = function() {
+    // Form kholne se pehle check karein ki cart khali toh nahi
+    let tQty = document.getElementById('cart-count').innerText;
+    if(tQty == "0") {
+        alert("Bhai, pehle kuch fruit toh select karo!");
+        return;
+    }
+    document.getElementById('checkoutModal').style.display = 'block';
+};
+
+// Step 2: Form bharne ke baad final send logic
+window.finalSend = function() {
+    const cName = document.getElementById('custName').value.trim();
+    const cPhone = document.getElementById('custPhone').value.trim();
+    const cAddress = document.getElementById('custAddress').value.trim();
+    const cPincode = document.getElementById('custPincode').value.trim();
+
+// Sample Pincodes (Ise aap baad mein badal sakte hain)
+    const allowedPincodes = ["425201"]; 
+
+     if(!cName || !cPhone || !cAddress || !cPincode) {
+        alert("Bhai, saari details bharna zaroori hai!");
+        return;
+    }
+
+    if(!allowedPincodes.includes(cPincode)) {
+        alert("Maafi chahte hain! Hum abhi is area mein delivery nahi dete.");
+        return;
+    }
+
+    // Message taiyaar karna
+    let msg = "NEW ORDER - MADINA FRUITS\n";
+    msg += "------------------------------\n";
+    msg += "👤 Name: " + cName + "\n";
+    msg += "📞 Phone: " + cPhone + "\n";
+    msg += "📍 Address: " + cAddress + "\n";
+    msg += "------------------------------\n\n";
+    msg += "ORDER ITEMS: \n";
+
+    let total = 0;
+    for(let id in cart) {
+        if(cart[id].qty > 0) {
+            msg += "• " + cart[id].name + " [" + cart[id].qty + "]\n";
+            total += (cart[id].qty * cart[id].price);
+        }
+    }
+
+    msg += "\n💰 Total Bill: ₹" + total + "\n";
+    msg += "------------------------------\n";
+    msg += "Kripya order confirm karein!";
+
+    const myNumber = "919767105224"; 
+    const url = "https://wa.me/" + myNumber + "?text=" + encodeURIComponent(msg);
+    
+    // WhatsApp kholna
+    window.open(url, '_blank');
+    
+    // Form band karna aur cart khali karna (Optional)
+    document.getElementById('checkoutModal').style.display = 'none';
+};
     </script>
+
+<div id="checkoutModal" class="modal">
+    <div class="modal-content">
+        <h2>📋 Delivery Details</h2>
+        <p style="color: #666; font-size: 0.9rem;">Please provide your details to complete the order.</p>
+        
+        <input type="text" id="custName" placeholder="Aapka Naam" required>
+        <input type="tel" id="custPhone" placeholder="Mobile Number (10 Digits)" 
+       pattern="[0-9]{10}" maxlength="10" 
+       oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
+        <textarea id="custAddress" placeholder="Pura Address (Gully, Landmark, Area)" rows="3" required></textarea>
+	<input type="tel" id="custPincode" placeholder="Pincode" 
+       pattern="[0-9]{10}"
+       oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
+        
+        <button class="btn-confirm" onclick="finalSend()"> Confirm Order ✅</button>
+        
+        <p onclick="document.getElementById('checkoutModal').style.display='none'" style="text-align:center; color: white; margin-top:15px; cursor:pointer; font-size: 1rem;">Back to Shop</p>
+    </div>
+</div>
 </body>
 </html>
