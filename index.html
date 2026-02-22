@@ -285,11 +285,11 @@ window.finalSend = function() {
     const cAddress = document.getElementById('custAddress').value.trim();
     const cPincode = document.getElementById('custPincode').value.trim();
 
-// Sample Pincodes (Ise aap baad mein badal sakte hain)
-    const allowedPincodes = ["425201"]; 
+    // Aapke Delivery Areas
+    const allowedPincodes = ["425201", "425202", "123456"]; 
 
-     if(!cName || !cPhone || !cAddress || !cPincode) {
-        alert("Bhai, saari details bharna zaroori hai!");
+    if(!cName || cPhone.length !== 10 || !cAddress || !cPincode) {
+        alert("Bhai, saari details aur 10 digit number sahi se bhariye!");
         return;
     }
 
@@ -298,34 +298,35 @@ window.finalSend = function() {
         return;
     }
 
-    // Message taiyaar karna
     let msg = "NEW ORDER - MADINA FRUITS\n";
     msg += "------------------------------\n";
     msg += "👤 Name: " + cName + "\n";
     msg += "📞 Phone: " + cPhone + "\n";
-    msg += "📍 Address: " + cAddress + "\n";
+    msg += "📍 Address: " + cAddress + " - " + cPincode + "\n";
     msg += "------------------------------\n\n";
     msg += "ORDER ITEMS: \n";
 
     let total = 0;
     for(let id in cart) {
         if(cart[id].qty > 0) {
-            msg += "• " + cart[id].name + " [" + cart[id].qty + "]\n";
+            // Smart Logic: Card ke text se Unit (kg/dozen) nikalna
+            let cardElement = document.getElementById('qty-' + id).closest('.fruit-card');
+            let unitText = cardElement.querySelector('p').innerText; 
+            let unit = unitText.split('/').pop().trim(); // "₹100 / kg" se "kg" nikal lega
+
+            msg += "• " + cart[id].name + " [" + cart[id].qty + " " + unit + "]\n";
             total += (cart[id].qty * cart[id].price);
         }
     }
 
-    msg += "\n💰 Total Bill: ₹" + total + "\n";
+    msg += "\n⭐ Total Bill: ₹" + total + "\n";
     msg += "------------------------------\n";
     msg += "Kripya order confirm karein!";
 
     const myNumber = "919767105224"; 
     const url = "https://wa.me/" + myNumber + "?text=" + encodeURIComponent(msg);
     
-    // WhatsApp kholna
     window.open(url, '_blank');
-    
-    // Form band karna aur cart khali karna (Optional)
     document.getElementById('checkoutModal').style.display = 'none';
 };
     </script>
@@ -341,7 +342,7 @@ window.finalSend = function() {
        oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
         <textarea id="custAddress" placeholder="Pura Address (Gully, Landmark, Area)" rows="3" required></textarea>
 	<input type="tel" id="custPincode" placeholder="Pincode" 
-       pattern="[0-9]{10}"
+       pattern="[0-9]{10}" maxlength="6"
        oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
         
         <button class="btn-confirm" onclick="finalSend()"> Confirm Order ✅</button>
